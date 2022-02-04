@@ -1,0 +1,141 @@
+# In[1]:
+ 
+ 
+#I have covered this script in my previous video!
+ 
+ 
+# In[2]:
+ 
+ 
+import pandas as pd
+import sqlalchemy
+from binance.client import Client
+from binance import BinanceSocketManager
+ 
+ 
+# In[3]:
+ 
+ 
+get_ipython().run_line_magic('run', './Binance_Keys.ipynb')
+ 
+ 
+# In[5]:
+ 
+ 
+client = Client(api_key,api_secret)
+ 
+ 
+# In[ ]:
+ 
+ 
+engine = sqlalchemy.create_engine('sqlite:///stream.db')
+ 
+ 
+# In[6]:
+ 
+ 
+bsm = BinanceSocketManager(client)
+ 
+ 
+# In[8]:
+ 
+ 
+socket = bsm.trade_socket(pair)
+ 
+ 
+# In[9]:
+ 
+ 
+def createframe(msg):
+    df = pd.DataFrame([msg])
+    df = df.loc[:,['s','E','p']]
+    df.columns = ['symbol','Time','Price']
+    df.Price = df.Price.astype(float)
+    df.Time = pd.to_datetime(df.Time, unit='ms')
+    return df
+ 
+ 
+# In[12]:
+ 
+ 
+await socket.__aenter__()
+msg = await socket.recv()
+frame = createframe(msg)
+frame.to_sql(pair, engine, if_exists='append', index=False)
+print(frame)
+ 
+#------- END OF SCRIPT -------- -# 
+ 
+ 
+# STRATEGY Part
+ 
+import sqlalchemy
+import pandas as pd
+from binance.client import Client
+ 
+ 
+# In[20]:
+ 
+ 
+get_ipython().run_line_magic('run', './Binance_Keys.ipynb')
+ 
+ 
+# In[26]:
+ 
+ 
+client = Client(api_key,api_secret)
+ 
+ 
+# In[22]:
+ 
+ 
+engine = sqlalchemy.create_engine('sqlite:///'stream.db')
+ 
+ 
+# In[15]:
+ 
+ 
+#Trendfollowing
+#if the crypto was rising by x % -> Buy
+#exit when profit is above 0.15% or loss is crossing -0.15%
+ 
+ 
+# In[16]:
+ 
+ 
+def strategy(entry, lookback, qty, open_position=False):
+    while True:
+        df = pd.read_sql(pair, engine)
+        lookbackperiod = df.iloc[-lookback:]
+        cumret = (lookbackperiod.Price.pct_change() +1).cumprod() - 1
+        if not open_position:
+            if cumret[cumret.last_valid_index()] > entry:
+                order = client.create_order(symbol=pair,
+                                           side='BUY',
+                                           type='MARKET',
+                                           quantity=qty)
+                print(order)
+                open_position = True
+                break
+    if open_position:
+        while True:
+            df = pd.read_sql('BTCUSDT', engine)
+            sincebuy = df.loc[df.Time > 
+                              pd.to_datetime(order['transactTime'],
+                                            unit='ms')]
+            if len(sincebuy) > 1:
+                sincebuyret = (sincebuy.Price.pct_change() +1).cumprod() - 1
+                last_entry = sincebuyret[sincebuyret.last_valid_index()]
+                if last_entry > 0.0015 or last_entry < -0.0015:
+                    order = client.create_order(symbol=pair,
+                                           side='SELL',
+                                           type='MARKET',
+                                           quantity=qty)
+                    print(order)
+                    break
+ 
+ 
+# In[22]:
+ 
+ 
+strategy(0.001, 60, 0.001)

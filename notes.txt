@@ -1,0 +1,7 @@
+klines - 12hr interval
+
+item 1 - Sun, 17 Apr 2022 00:00:00 GMT
+item 2 - Sun, 17 Apr 2022 12:00:00 GMT
+item 3 - Mon, 18 Apr 2022 00:00:00 GMT
+
+https://www.programcreek.com/python/?CodeExample=get+klines

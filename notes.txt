@@ -5,3 +5,8 @@ item 2 - Sun, 17 Apr 2022 12:00:00 GMT
 item 3 - Mon, 18 Apr 2022 00:00:00 GMT
 
 https://www.programcreek.com/python/?CodeExample=get+klines
+
+It is interesting that the whole process seems so far fetched. But the concept seems solid.
+
+Interesting
+If we visualize the decisiontree from historical datasets, we can figure out the trigger points for a rise.

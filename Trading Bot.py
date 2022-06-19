@@ -145,6 +145,7 @@ while(True):
         print("Timeout occured")
     except requests.exceptions.ConnectionError:
         print("ConnectionError occured")
+        time.sleep(10)
 
 # Run this to sell all symbols in the inventory
 # sell_all()

@@ -113,15 +113,27 @@ def sell_all():
     for symbol in inventory:
         sell_symbol(symbol)
 
-def strategy(list_of_symbols):
-    
-    # Buying
+def start():
     inventory = extract_from_tuple(fetchall())
-    blocked = extract_from_tuple(fetchall('block'))
-    for symbol in list_of_symbols:
-        if (symbol not in inventory) & (symbol not in blocked):
-            buy_symbol(symbol,1)
-    
+    with open('selected_symbols.txt','r') as file:
+        file.seek(0) # Ensure you're at the start of the file..
+        first_char = file.read(1) # Get the first character
+        if not first_char:
+            pass # The first character is the empty string..
+        else:
+            file.seek(0) # The first character wasn't empty. Return to the start of the file.
+             # Use file now
+            list_of_symbols = file.readline().split(',')
+            with open('selected_symbols.txt','w') as f:
+                f.write('')
+            
+            # Buying
+            blocked = extract_from_tuple(fetchall('block'))
+            for symbol in list_of_symbols:
+                if (symbol not in inventory) & (symbol not in blocked):
+                    # Minimum funds $10
+                    buy_symbol(symbol,10)
+            
     # Selling
     for symbol in inventory:
         buy_time = get_data(symbol)[3]
@@ -136,17 +148,6 @@ def strategy(list_of_symbols):
     for item in blocked:
         if item[1] <= time:
             execute(f"DELETE FROM block WHERE symbol = '{item[0]}'")
-
-def start():
-    with open('pairs_level_4.txt','r') as file:
-        file.seek(0) # Ensure you're at the start of the file..
-        first_char = file.read(1) # Get the first character
-        if not first_char:
-            pass # The first character is the empty string..
-        else:
-            file.seek(0) # The first character wasn't empty. Return to the start of the file.
-             # Use file now
-            strategy(file.readline().split(','))
 
 print("Program starts")
 

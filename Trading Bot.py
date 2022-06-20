@@ -19,7 +19,7 @@ try:
         CREATE TABLE inventory (
             symbol TEXT,
             avg_price REAL,
-            qty INTEGER,
+            qty REAL,
             buy_time REAL
         )""")
 except:
@@ -33,6 +33,19 @@ try:
         )""")
 except:
     print("Table 'block' already exists")
+    
+try:
+    db.cursor().execute("""
+        CREATE TABLE history (
+            symbol TEXT,
+            avg_price REAL,
+            qty REAL,
+            buy_time REAL,
+            sell_time REAL,
+            profit REAL
+        )""")
+except:
+    print("Table 'history' already exists")
 
 db.commit()
 db.close()

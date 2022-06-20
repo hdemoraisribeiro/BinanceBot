@@ -27,7 +27,7 @@ def filter_symbol(level, list_of_symbols, threshold, time):
         if percent_change > threshold:
             selected_symbols.append(symbol)
             if(level==4):
-                print(symbol, percent_change)
+                print(f"{symbol}: {percent_change}% ${get_price(klines[0])}")
     print_file(selected_symbols,'pairs_level_'+str(level))
     if(level==4) & (len(selected_symbols)>0):
         print('---------------------------\n')

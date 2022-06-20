@@ -76,12 +76,15 @@ def start():
                 level4 = filter_symbol(4, level3, 1, timedelta(minutes=390))
                 # print('\n Finish iteration\n')
 
-while(True):
-    time.sleep(5)
-    try:
-        start()
-    except requests.exceptions.ReadTimeout:
-        print("Timeout occured")
-    except requests.exceptions.ConnectionError:
-        print("ConnectionError occured")
-        time.sleep(10)
+try:
+    while(True):
+        time.sleep(5)
+        try:
+            start()
+        except requests.exceptions.ReadTimeout:
+            print("Timeout occured")
+        except requests.exceptions.ConnectionError:
+            print("ConnectionError occured")
+            time.sleep(10)
+except KeyboardInterrupt:
+    print("KeyboardInterrupt occured")

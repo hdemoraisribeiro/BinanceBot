@@ -6,8 +6,7 @@ def print_file(ls, file):
 # Function for getting price
 def get_price(ls):
     avg = (float(ls[1]) + float(ls[4])) / 2
-    price = float("{:.4f}".format(avg))
-    return price
+    return avg
 
 # Function for getting percent change in 6 hour
 def get_percent_change(ls_1, ls_2):

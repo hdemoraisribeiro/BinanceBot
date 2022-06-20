@@ -150,15 +150,17 @@ def start():
 
 print("Program starts")
 
-while(True):
-    time.sleep(5)
-    try:
-        start()
-    except requests.exceptions.ReadTimeout:
-        print("Timeout occured")
-    except requests.exceptions.ConnectionError:
-        print("ConnectionError occured")
-        time.sleep(10)
-
+try:
+    while(True):
+        time.sleep(5)
+        try:
+            start()
+        except requests.exceptions.ReadTimeout:
+            print("Timeout occured")
+        except requests.exceptions.ConnectionError:
+            print("ConnectionError occured")
+            time.sleep(10)
+except KeyboardInterrupt:
+    print("KeyboardInterrupt occured")
 # Run this to sell all symbols in the inventory
 # sell_all()

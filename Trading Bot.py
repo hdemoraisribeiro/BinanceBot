@@ -97,12 +97,16 @@ def buy_symbol(symbol,qty):
 
 def sell_symbol(symbol):
     qty=get_data(symbol)[2]
-    price = float(client.get_avg_price(symbol=symbol)['price'])
+    price = client.get_symbol_ticker(symbol=symbol)['price']
     buy_price = get_data(symbol)[1]
     profit = float("{:.4f}".format(((price-buy_price)/buy_price)*100))
-    # order = client.create_order(symbol="SLPUSDT", side="SELL", type="MARKET", quantity=qty)
-    # print(order)
-    delete_from_db(symbol,price,qty,profit)
+    try:
+        order = client.create_test_order(symbol=symbol, side="SELL", type="MARKET", quantity=qty)
+        print(order)
+        delete_from_db(symbol,price,qty,profit)
+    except Exception as e:
+        print("Sell order failed")
+        print(e)
     
 def block(symbol):
     time = int((datetime.utcnow() + timedelta(hours=1)).strftime('%d%H%M%S'))

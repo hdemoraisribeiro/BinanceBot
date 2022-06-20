@@ -1,4 +1,5 @@
 import time
+import math
 import sqlite3
 import requests
 import pandas as pd
@@ -89,11 +90,25 @@ def get_data(symbol,table='inventory'):
     db.close()
     return data
 
-def buy_symbol(symbol,qty):
-    price = float(client.get_avg_price(symbol=symbol)['price'])
-    add_to_db(symbol,price,qty)
-    # order = client.create_order(symbol="SLPUSDT", side="BUY", type="MARKET", quantity=qty)
-    # print(order)
+def buy_symbol(symbol,fund):
+    price = client.get_symbol_ticker(symbol=symbol)['price']
+    fund = 10 if fund<10 else fund # $10 is minimum
+    
+    buy_quantity = fund / float(price) # How many coins for ${fund}
+    minQty = float(client.get_symbol_info(symbol)['filters'][2]['minQty'])
+    stepSize = float(client.get_symbol_info(symbol)['filters'][2]['stepSize'])
+
+    # qty = minimum + stepSize x n, 
+    qty = minQty + (stepSize*math.ceil((buy_quantity-minQty)/stepSize)) # Valid quantity value closest to buy_quantity
+    
+    try:
+        order = client.create_order(symbol=symbol, side="BUY", type="MARKET", quantity=qty)
+        print(order)
+        add_to_db(symbol,price,qty)
+    except Exception as e:
+        print("Buy order failed")
+        print(e)
+    
 
 def sell_symbol(symbol):
     qty=get_data(symbol)[2]

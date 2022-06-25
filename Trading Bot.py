@@ -91,7 +91,7 @@ def get_data(symbol,table='inventory'):
     return data
 
 def buy_symbol(symbol,fund):
-    price = client.get_symbol_ticker(symbol=symbol)['price']
+    price = float(client.get_symbol_ticker(symbol=symbol)['price'])
     fund = 10 if fund<10 else fund # $10 is minimum
     
     buy_quantity = fund / float(price) # How many coins for ${fund}
@@ -106,21 +106,21 @@ def buy_symbol(symbol,fund):
         print(order)
         add_to_db(symbol,price,qty)
     except Exception as e:
-        print("Buy order failed")
+        print("Buy order error")
         print(e)
     
 
 def sell_symbol(symbol):
     qty=get_data(symbol)[2]
-    price = client.get_symbol_ticker(symbol=symbol)['price']
+    price = float(client.get_symbol_ticker(symbol=symbol)['price'])
     buy_price = get_data(symbol)[1]
     profit = float("{:.4f}".format(((price-buy_price)/buy_price)*100))
     try:
-        order = client.create_test_order(symbol=symbol, side="SELL", type="MARKET", quantity=qty)
+        order = client.create_order(symbol=symbol, side="SELL", type="MARKET", quantity=qty)
         print(order)
         delete_from_db(symbol,price,qty,profit)
     except Exception as e:
-        print("Sell order failed")
+        print("Sell order error")
         print(e)
     
 def block(symbol):

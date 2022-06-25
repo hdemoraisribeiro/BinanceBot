@@ -1,8 +1,6 @@
 .env
 .ipynb_checkpoints
 crypto.db
-pairs_level_1.txt
-pairs_level_2.txt
-pairs_level_3.txt
-pairs_level_4.txt
-selected_symbols.txt
+output/selected_symbols.txt
+output/filtered.txt
+output/test.txt

@@ -1,38 +1,44 @@
 # Function for printing to files
 def print_file(ls, file):
-    with open(str(file)+'.txt','w') as file:
+    with open(f'output/{file}.txt','w') as file:
         file.write(str(ls)[1:-1].replace(' ','').replace('\'',''))
         
-# Function for getting price
 def get_price(ls):
-    avg = (float(ls[1]) + float(ls[4])) / 2
-    return avg
+    return ((float(ls[1]) + float(ls[4])) / 2)
 
-# Function for getting percent change in 6 hour
+# Function for getting percent change
 def get_percent_change(ls_1, ls_2):
     change = (get_price(ls_2) - get_price(ls_1)) / get_price(ls_1) * 100
     return float("{:.4f}".format(change))
 
-# Function for flitering symbols using threshold
-def filter_symbol(level, list_of_symbols, threshold, time):
-    now_time = datetime.now()
-    prev_time = now_time - time
+# Function for flitering symbols
+def filter_symbol(list_of_symbols):
     selected_symbols = []
-
+    calls=0
     for symbol in list_of_symbols:
-        klines = client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1MINUTE, str(prev_time), str(now_time))
+        while True:
+            try:
+                now_time = datetime.now()
+                prev_time = now_time - timedelta(hours=12)
+                klines = client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1MINUTE, str(prev_time), str(now_time))
 
-        percent_change = get_percent_change(klines[0], klines[-1])
+                _6hrs, _1hr, _30mins = get_percent_change(klines[0], klines[-1]), get_percent_change(klines[299], klines[-1]), get_percent_change(klines[329], klines[-1])
 
-        if percent_change > threshold:
-            selected_symbols.append(symbol)
-            if(level==4):
-                print(f"{symbol}: {percent_change}% ${get_price(klines[0])}")
-    print_file(selected_symbols,'pairs_level_'+str(level))
-    if(level==4) & (len(selected_symbols)>0):
+                if (_6hrs > 6) & (_1hr > 3) & (_30mins > 1):
+                    selected_symbols.append(symbol)
+                    print(f"{symbol}->\t6hrs: {_6hrs:.2f}%\t1hr: {_1hr:.2f}%\t30min: {_30mins:.2f}%")
+                calls+=1
+                break
+                
+            except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
+                print(e)
+                time.sleep(5)
+                pass
+    print(f"{calls} API calls made")
+    print_file(selected_symbols,'filtered')
+    
+    if(len(selected_symbols)>0):
         print_file(selected_symbols,'selected_symbols')
-        print('---------------------------\n')
-    return selected_symbols
 
 # Import Libraries & Load Environment Variables
 import time
@@ -52,39 +58,29 @@ API_SECRET = os.environ.get("API_SECRET")
 # Binance Client
 client = Client(API_KEY, API_SECRET)
 
-list_symbols_USDT = [item["symbol"] for item in client.get_exchange_info()["symbols"] if ("USDT" in item["symbol"]) & ("DOWN" not in item["symbol"])]
-print_file(list_symbols_USDT,'pairs')
-
+with open('output/pairs.txt','r') as file:
+    list_of_symbols = file.readline().split(',')
+    
 print("Live Data Script starts")
 
-# ### Main Code
 def start():
-    level1 = [item for item in [item['symbol'] for item in client.get_ticker() if float(item['priceChangePercent'])>10.0] if ('USDT' in item) & ('DOWN' not in item)]
-    print_file(level1,'pairs_level_1')
+    while True:
+        try:
+            _24hrs = [item for item in [item['symbol'] for item in client.get_ticker() if float(item['priceChangePercent'])>10.0] if (item in list_of_symbols)] # CALL
+            break
+        except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
+            print(e)
+            pass
     
-    if(len(level1)>0):
-        
-        # print("Level 2 - 6hrs window")
-        level2 = filter_symbol(2, level1, 6, timedelta(hours=12)) #filter_symbol (level, list_of_symbols, threshold, timedelta)
-        
-        if(len(level2)>0):
-            # print("\nLevel 3 - 1hrs window") 
-            level3 = filter_symbol(3, level2, 3, timedelta(hours=7))
-            
-            if(len(level3)>0):
-                # print('\nLevel 4 - 30min window')
-                level4 = filter_symbol(4, level3, 1, timedelta(minutes=390))
-                # print('\n Finish iteration\n')
-
+    if(len(_24hrs)>0):
+        filter_symbol(_24hrs)
 try:
     while(True):
-        time.sleep(5)
-        try:
-            start()
-        except requests.exceptions.ReadTimeout:
-            print("Timeout occured")
-        except requests.exceptions.ConnectionError:
-            print("ConnectionError occured")
-            time.sleep(10)
+        start_time = datetime.utcnow()
+        start()
+        # time.sleep(5)
+        end_time = datetime.utcnow()
+        print(end_time - start_time)
+        print('')
 except KeyboardInterrupt:
     print("KeyboardInterrupt occured")

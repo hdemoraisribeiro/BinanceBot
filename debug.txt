@@ -1,0 +1,6 @@
+Live Data Script: Lowest time - 4.406341  Most API calls - 18
+
+APIError(code=-2010): Account has insufficient balance for requested action.
+APIError(code=-2010): This action is disabled on this account.
+APIError(code=-1013): Filter failure: MIN_NOTIONAL
+APIError(code=-1111): Precision is over the maximum defined for this asset.

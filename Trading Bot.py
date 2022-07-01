@@ -95,11 +95,13 @@ def buy_symbol(symbol,fund):
     fund = 10 if fund<10 else fund # $10 is minimum
     
     buy_quantity = fund / float(price) # How many coins for ${fund}
-    minQty = float(client.get_symbol_info(symbol)['filters'][2]['minQty'])
-    stepSize = float(client.get_symbol_info(symbol)['filters'][2]['stepSize'])
+#     details = client.get_symbol_info(symbol)['filters'][2]
+#     minQty = float(details['minQty'])
+#     stepSize = float(details['stepSize'])
 
-    # qty = minimum + stepSize x n, 
-    qty = minQty + (stepSize*math.ceil((buy_quantity-minQty)/stepSize)) # Valid quantity value closest to buy_quantity
+#     # qty = minimum + stepSize x n, 
+#     qty = minQty + (stepSize*math.ceil((buy_quantity-minQty)/stepSize)) # Valid quantity value closest to buy_quantity
+    qty = buy_quantity
     
     try:
         order = client.create_order(symbol=symbol, side="BUY", type="MARKET", quantity=qty)
@@ -151,7 +153,7 @@ def start():
             for symbol in list_of_symbols:
                 if (symbol not in inventory) & (symbol not in blocked):
                     # Minimum funds $10
-                    buy_symbol(symbol,10)
+                    buy_symbol(symbol,15)
             
     # Selling
     for symbol in inventory:

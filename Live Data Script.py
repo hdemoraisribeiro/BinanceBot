@@ -69,6 +69,7 @@ def start():
             _24hrs = [item for item in [item['symbol'] for item in client.get_ticker() if float(item['priceChangePercent'])>10.0] if (item in list_of_symbols)] # CALL
             break
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
+            time.sleep(5)
             print(e)
             pass
     

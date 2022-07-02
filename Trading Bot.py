@@ -173,9 +173,9 @@ def start():
     # Selling
     for symbol in inventory:
         buy_time = get_data(symbol)[3]
-        time = int(datetime.utcnow().strftime('%d%H%M%S'))
+        time = int((datetime.utcnow()-timedelta(minutes=15)).strftime('%d%H%M%S'))
         # If more than 15 minutes have passed
-        if(time >= buy_time + 1500):
+        if(time >= buy_time):
             sell_symbol(symbol)
 
     # Unblocking

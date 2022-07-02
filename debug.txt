@@ -1,4 +1,4 @@
-Live Data Script: Lowest time - 4.406341  Most API calls - 18
+Live Data Script: Lowest time - 3.402487  Most API calls - 18
 
 APIError(code=-2010): Account has insufficient balance for requested action.
 APIError(code=-2010): This action is disabled on this account.

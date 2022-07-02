@@ -3,7 +3,8 @@ import math
 import sqlite3
 import requests
 import pandas as pd
-import sqlalchemy, os
+import sqlalchemy
+import os
 from dotenv import load_dotenv
 from binance.client import Client
 from datetime import datetime, timedelta
@@ -34,7 +35,7 @@ try:
         )""")
 except:
     print("Table 'block' already exists")
-    
+
 try:
     db.cursor().execute("""
         CREATE TABLE history (
@@ -51,6 +52,7 @@ except:
 db.commit()
 db.close()
 
+
 def fetchall(table='inventory'):
     db = sqlite3.connect('crypto.db')
     cursor = db.cursor()
@@ -60,9 +62,11 @@ def fetchall(table='inventory'):
     db.close()
     return alldata
 
-def extract_from_tuple(alldata, i = 0):
+
+def extract_from_tuple(alldata, i=0):
     symbols = [x[i] for x in alldata]
     return symbols
+
 
 def execute(command):
     db = sqlite3.connect('crypto.db')
@@ -70,18 +74,21 @@ def execute(command):
     cursor.execute(command)
     db.commit()
     db.close()
-    
+
+
 def add_to_db(symbol, price, qty):
     time = int(datetime.utcnow().strftime('%d%H%M%S'))
     execute(f"INSERT INTO inventory VALUES ('{symbol}',{price},{qty},{time})")
     print(f"Bought {qty} units of {symbol} at ${price:.2f}")
-    
-def delete_from_db(symbol,price,qty,profit):
+
+
+def delete_from_db(symbol, price, qty, profit):
     execute(f"DELETE FROM inventory WHERE symbol = '{symbol}'")
     print(f"Sold {qty} units of {symbol} at ${price:.2f}. Profit {profit:.2f}%")
     block(symbol)
 
-def get_data(symbol,table='inventory'):
+
+def get_data(symbol, table='inventory'):
     db = sqlite3.connect('crypto.db')
     cursor = db.cursor()
     cursor.execute(f"SELECT * FROM {table} WHERE symbol = '{symbol}'")
@@ -90,71 +97,79 @@ def get_data(symbol,table='inventory'):
     db.close()
     return data
 
-def buy_symbol(symbol,fund):
+
+def buy_symbol(symbol, fund):
     price = float(client.get_symbol_ticker(symbol=symbol)['price'])
-    fund = 10 if fund<10 else fund # $10 is minimum
-    
-    buy_quantity = fund / float(price) # How many coins for ${fund}
+    fund = 10 if fund < 10 else fund  # $10 is minimum
+
+    buy_quantity = fund / float(price)  # How many coins for ${fund}
     details = client.get_symbol_info(symbol)['filters'][2]
     minQty = float(details['minQty'])
     stepSize = float(details['stepSize'])
 
-    # qty = minimum + stepSize x n, 
-    qty = minQty + (stepSize*math.ceil((buy_quantity-minQty)/stepSize)) # Valid quantity value closest to buy_quantity
+    # qty = minimum + stepSize x n,
+    # Valid quantity value closest to buy_quantity
+    qty = minQty + (stepSize*math.ceil((buy_quantity-minQty)/stepSize))
     # qty = float(round(buy_quantity,8))
-    
+
     try:
-        order = client.create_order(symbol=symbol, side="BUY", type="MARKET", quantity=qty)
+        order = client.create_order(
+            symbol=symbol, side="BUY", type="MARKET", quantity=qty)
         print(order)
-        add_to_db(symbol,price,qty)
+        add_to_db(symbol, price, qty)
     except Exception as e:
         print("Buy order error")
         print(e)
-    
+
 
 def sell_symbol(symbol):
-    qty=get_data(symbol)[2]
+    qty = get_data(symbol)[2]
     price = float(client.get_symbol_ticker(symbol=symbol)['price'])
     buy_price = get_data(symbol)[1]
     profit = float("{:.4f}".format(((price-buy_price)/buy_price)*100))
     try:
-        order = client.create_order(symbol=symbol, side="SELL", type="MARKET", quantity=qty)
+        order = client.create_order(
+            symbol=symbol, side="SELL", type="MARKET", quantity=qty)
         print(order)
-        delete_from_db(symbol,price,qty,profit)
+        delete_from_db(symbol, price, qty, profit)
     except Exception as e:
         print("Sell order error")
         print(e)
-    
+
+
 def block(symbol):
     time = int((datetime.utcnow() + timedelta(hours=1)).strftime('%d%H%M%S'))
     execute(f"INSERT INTO block VALUES ('{symbol}',{time})")
-    
+
+
 def sell_all():
     inventory = extract_from_tuple(fetchall())
     for symbol in inventory:
         sell_symbol(symbol)
 
+
 def start():
     inventory = extract_from_tuple(fetchall())
-    with open('output/selected_symbols.txt','r') as file:
-        file.seek(0) # Ensure you're at the start of the file..
-        first_char = file.read(1) # Get the first character
+    with open('output/selected_symbols.txt', 'r') as file:
+        file.seek(0)  # Ensure you're at the start of the file..
+        first_char = file.read(1)  # Get the first character
         if not first_char:
-            pass # The first character is the empty string..
+            pass  # The first character is the empty string..
         else:
-            file.seek(0) # The first character wasn't empty. Return to the start of the file.
-             # Use file now
+            # The first character wasn't empty. Return to the start of the file.
+            file.seek(0)
+            # Use file now
             list_of_symbols = file.readline().split(',')
-            with open('output/selected_symbols.txt','w') as f:
+            with open('output/selected_symbols.txt', 'w') as f:
                 f.write('')
-            
+
             # Buying
             blocked = extract_from_tuple(fetchall('block'))
             for symbol in list_of_symbols:
                 if (symbol not in inventory) & (symbol not in blocked):
                     # Minimum funds $10
-                    buy_symbol(symbol,15)
-            
+                    buy_symbol(symbol, 15)
+
     # Selling
     for symbol in inventory:
         buy_time = get_data(symbol)[3]
@@ -162,13 +177,14 @@ def start():
         # If more than 15 minutes have passed
         if(time >= buy_time + 1500):
             sell_symbol(symbol)
-            
+
     # Unblocking
     blocked = fetchall('block')
     time = int(datetime.utcnow().strftime('%d%H%M%S'))
     for item in blocked:
         if item[1] <= time:
             execute(f"DELETE FROM block WHERE symbol = '{item[0]}'")
+
 
 print("Program starts")
 

@@ -95,11 +95,13 @@ def buy_symbol(symbol,fund):
     fund = 10 if fund<10 else fund # $10 is minimum
     
     buy_quantity = fund / float(price) # How many coins for ${fund}
-    minQty = float(client.get_symbol_info(symbol)['filters'][2]['minQty'])
-    stepSize = float(client.get_symbol_info(symbol)['filters'][2]['stepSize'])
+    details = client.get_symbol_info(symbol)['filters'][2]
+    minQty = float(details['minQty'])
+    stepSize = float(details['stepSize'])
 
     # qty = minimum + stepSize x n, 
     qty = minQty + (stepSize*math.ceil((buy_quantity-minQty)/stepSize)) # Valid quantity value closest to buy_quantity
+    # qty = float(round(buy_quantity,8))
     
     try:
         order = client.create_order(symbol=symbol, side="BUY", type="MARKET", quantity=qty)
@@ -134,7 +136,7 @@ def sell_all():
 
 def start():
     inventory = extract_from_tuple(fetchall())
-    with open('selected_symbols.txt','r') as file:
+    with open('output/selected_symbols.txt','r') as file:
         file.seek(0) # Ensure you're at the start of the file..
         first_char = file.read(1) # Get the first character
         if not first_char:
@@ -143,7 +145,7 @@ def start():
             file.seek(0) # The first character wasn't empty. Return to the start of the file.
              # Use file now
             list_of_symbols = file.readline().split(',')
-            with open('selected_symbols.txt','w') as f:
+            with open('output/selected_symbols.txt','w') as f:
                 f.write('')
             
             # Buying
@@ -151,7 +153,7 @@ def start():
             for symbol in list_of_symbols:
                 if (symbol not in inventory) & (symbol not in blocked):
                     # Minimum funds $10
-                    buy_symbol(symbol,10)
+                    buy_symbol(symbol,15)
             
     # Selling
     for symbol in inventory:

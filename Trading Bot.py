@@ -52,7 +52,6 @@ except:
 db.commit()
 db.close()
 
-
 def fetchall(table='inventory'):
     db = sqlite3.connect('crypto.db')
     cursor = db.cursor()
@@ -62,11 +61,9 @@ def fetchall(table='inventory'):
     db.close()
     return alldata
 
-
 def extract_from_tuple(alldata, i=0):
     symbols = [x[i] for x in alldata]
     return symbols
-
 
 def execute(command):
     db = sqlite3.connect('crypto.db')
@@ -75,18 +72,15 @@ def execute(command):
     db.commit()
     db.close()
 
-
 def add_to_db(symbol, price, qty):
     time = int(datetime.utcnow().strftime('%d%H%M%S'))
     execute(f"INSERT INTO inventory VALUES ('{symbol}',{price},{qty},{time})")
     print(f"Bought {qty} units of {symbol} at ${price:.2f}")
 
-
 def delete_from_db(symbol, price, qty, profit):
     execute(f"DELETE FROM inventory WHERE symbol = '{symbol}'")
     print(f"Sold {qty} units of {symbol} at ${price:.2f}. Profit {profit:.2f}%")
     block(symbol)
-
 
 def get_data(symbol, table='inventory'):
     db = sqlite3.connect('crypto.db')
@@ -96,7 +90,6 @@ def get_data(symbol, table='inventory'):
     db.commit()
     db.close()
     return data
-
 
 def buy_symbol(symbol, fund):
     price = float(client.get_symbol_ticker(symbol=symbol)['price'])
@@ -109,8 +102,7 @@ def buy_symbol(symbol, fund):
 
     # qty = minimum + stepSize x n,
     # Valid quantity value closest to buy_quantity
-    qty = minQty + (stepSize*math.ceil((buy_quantity-minQty)/stepSize))
-    # qty = float(round(buy_quantity,8))
+    qty = float(round(minQty + (stepSize*math.ceil((buy_quantity-minQty)/stepSize)),8))
 
     try:
         order = client.create_order(

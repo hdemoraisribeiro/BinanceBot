@@ -95,7 +95,7 @@ def buy_symbol(symbol, fund):
     price = float(client.get_symbol_ticker(symbol=symbol)['price'])
     fund = 10 if fund < 10 else fund  # $10 is minimum
 
-    buy_quantity = fund / float(price)  # How many coins for ${fund}
+    buy_quantity = fund / price # How many coins for ${fund}
     details = client.get_symbol_info(symbol)['filters'][2]
     minQty = float(details['minQty'])
     stepSize = float(details['stepSize'])
@@ -139,6 +139,40 @@ def sell_all():
     for symbol in inventory:
         sell_symbol(symbol)
 
+def spot_balance():
+    sum_btc = 0.0
+    while(True):
+        try:
+            balances = client.get_account()["balances"]
+            break
+        except:
+            pass
+    for _balance in balances:
+        asset = _balance["asset"]
+        if float(_balance["free"]) != 0.0 or float(_balance["locked"]) != 0.0:
+            balance = float(_balance["free"]) + float(_balance["locked"])
+            if asset == "BTC":
+                sum_btc += balance
+            else:
+                symbol = asset + "BTC"
+                while(True):
+                    try:
+                        _price = client.get_symbol_ticker(symbol=symbol)
+                        sum_btc += balance * float(_price["price"])
+                        break
+                    except Exception as e:
+                        if 'Invalid symbol' in str(e):
+                            _price = client.get_symbol_ticker(symbol='BTC'+asset)
+                            sum_btc += balance / float(_price["price"])
+
+    while(True):
+        try:
+            current_btc_price_USD = client.get_symbol_ticker(symbol="BTCUSDT")["price"]
+            break
+        except Exception as e:
+            print(e)
+    own_usd = sum_btc * float(current_btc_price_USD)
+    return own_usd
 
 def start():
     inventory = extract_from_tuple(fetchall())
@@ -180,6 +214,8 @@ def start():
 
 print("Program starts")
 
+balance = spot_balance()
+
 try:
     while(True):
         time.sleep(5)
@@ -190,6 +226,11 @@ try:
         except requests.exceptions.ConnectionError:
             print("ConnectionError occured")
             time.sleep(10)
+            
+        if balance*1.02 <= spot_balance():
+            sell_all()
+            print("Target acheived")
+            break
 except KeyboardInterrupt:
     print("KeyboardInterrupt occured")
 # Run this to sell all symbols in the inventory

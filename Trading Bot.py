@@ -214,7 +214,7 @@ def start():
 
 print("Program starts")
 
-balance = spot_balance()
+# balance = spot_balance()
 
 try:
     while(True):
@@ -227,10 +227,10 @@ try:
             print("ConnectionError occured")
             time.sleep(10)
             
-        if balance*1.02 <= spot_balance():
-            sell_all()
-            print("Target acheived")
-            break
+#        if balance*1.02 <= spot_balance():
+#            sell_all()
+#            print("Target acheived")
+#            break
 except KeyboardInterrupt:
     print("KeyboardInterrupt occured")
 # Run this to sell all symbols in the inventory
